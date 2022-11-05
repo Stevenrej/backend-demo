@@ -10,12 +10,12 @@
 var express = require('express'); // Express web server framework
 var request = require('request'); // "Request" library
 var cors = require('cors');
-const URLSearchParams = require('URLSearchParams');
+var URLSearchParams = require('urlsearchparams');
 var cookieParser = require('cookie-parser');
 
-var client_id = 'b8b61a36d1514dabb9969947b7b65b45'; // Your client id
-var client_secret = '63bc77940696428588ca241fd0b34cfd'; // Your secret
-var redirect_uri = 'http://localhost:8888/callback'; // Your redirect uri
+var client_id = '{process.env.CLIENT_ID}'; // Your client id
+var client_secret = '{process.env.CLIENT_SECRET}'; // Your secret
+var redirect_uri = 'http://localhost:3001/callback'; // Your redirect uri
 
 /**
  * Generates a random string containing numbers and letters
@@ -47,14 +47,16 @@ app.get('/login', function(req, res) {
 
   // your application requests authorization
   var scope = 'user-read-private user-read-email';
+  let params = {
+    response_type: 'code',
+    client_id: client_id,
+    scope: scope,
+    redirect_uri: redirect_uri,
+    state: state
+  };
   res.redirect('https://accounts.spotify.com/authorize?' +
-  URLSearchParams.stringify({
-      response_type: 'code',
-      client_id: client_id,
-      scope: scope,
-      redirect_uri: redirect_uri,
-      state: state
-    }));
+  URLSearchParams.toString(`client_id=${params.client_id}&scope=${params.scope}&redirect_uri=${params.redirect_uri}`));
+
 });
 
 app.get('/callback', function(req, res) {
@@ -68,7 +70,7 @@ app.get('/callback', function(req, res) {
 
   if (state === null || state !== storedState) {
     res.redirect('/#' +
-    URLSearchParams.stringify({
+    URLSearchParams.toString({
         error: 'state_mismatch'
       }));
   } else {
@@ -105,13 +107,13 @@ app.get('/callback', function(req, res) {
 
         // we can also pass the token to the browser to make requests from there
         res.redirect('/#' +
-        URLSearchParams.stringify({
+        URLSearchParams.toString({
             access_token: access_token,
             refresh_token: refresh_token
           }));
       } else {
         res.redirect('/#' +
-        URLSearchParams.stringify({
+        URLSearchParams.toString({
             error: 'invalid_token'
           }));
       }
@@ -143,5 +145,5 @@ app.get('/refresh_token', function(req, res) {
   });
 });
 
-console.log('Listening on 8888');
-app.listen(8888);
+console.log('Listening on 3001');
+app.listen(3001);
